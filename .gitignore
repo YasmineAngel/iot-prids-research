@@ -1,0 +1,10 @@
+﻿data/*
+!data/.gitkeep
+!data/README.md
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.env
+*.pcap
+*.zip

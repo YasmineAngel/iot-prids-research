@@ -132,7 +132,54 @@ which supports keeping them in the representation (decision 1).
 ---
 
 ## 4. Step B — dictionary brute-force attacker
-*To do.*
+
+File: `ciciot2023/PCAP/DictionaryBruteForce/DictionaryBruteForce.pcap`
+(whole file, 133,138 packets). Filter `tcp.port == 22 || tcp.port == 554`
+keeps 27,949 packets (21.0%).
+
+### Attacker
+**`dc:a6:32:dc:27:d5` (Raspberry Pi)** is the source of all 5 attacks.
+This is the Pi that is *busy* in benign traffic (Step A, 3,353 packets), so the
+attacker also produces normal traffic. Labels must use attacker → victim pairs,
+not "everything from the attacker".
+
+Evidence: its SSH client identifies as `SSH-2.0-libssh_0.9.5` (library used by
+brute-force tools such as Hydra); the victims answer `SSH-2.0-OpenSSH_8.4p1 Raspbian`.
+First attack packet: 2022-10-14 16:18:30 UTC.
+
+### The 5 attacks
+| # | Victim MAC | Victim IP | Attacker IP | Protocol | Packets | Duration |
+|---|---|---|---|---|---|---|
+| 1 | `dc:a6:32:c9:e5:02` (Pi) | 192.168.137.238 | 192.168.137.225 | SSH (22) | 314 | 10.2 s |
+| 2 | `dc:a6:32:c9:e6:f4` (Pi) | 192.168.137.161 | 192.168.137.225 | SSH (22) | 323 | 21.3 s |
+| 3 | `BilianElectr_cd:18:32` (camera) | 192.168.137.140 | 192.168.137.65 | RTSP (554) | 1,990 | 50.7 s |
+| 4 | `BilianElectr_ec:10:4a` (camera) | 192.168.137.11 | 192.168.137.65 | RTSP (554) | 3,674 | 16.8 s |
+| 5 | `dc:a6:32:c9:e4:c6` (Pi) | 192.168.137.67 | 192.168.137.65 | SSH (22) | 21,648 | 1,420.8 s |
+
+This matches the victims list (3 Pis + HeimVision and Luohe cameras) and the paper
+(3 SSH + 2 RTSP attacks). Bilian Electronic makes Wi-Fi modules used in cameras;
+which camera is HeimVision and which is Luohe is still unknown.
+
+### Timing
+The I/O graph shows two clusters about 250,000 s (≈ 2.9 days) apart:
+attacks 1–2 in the first, attacks 3–5 in the second.
+
+### Same MAC, different IPs
+The attacker is `.225` in the first cluster and `.65` in the second: DHCP gave it a
+new address between the two. Real evidence for the paper's choice to drop IPs from
+representations (Section 4.3.4), and the reason labels use MACs, not IPs.
+
+### Difference from the paper
+Our durations (10–1,421 s) differ from the paper's Table 8 (61, 61, 195, 60, 60 s).
+Likely reasons: we measure only attacker ↔ victim SSH/RTSP packets, while the
+paper's traffic duration seems to include surrounding traffic (≈ 60 s windows),
+and the paper caps tests at 10,000 packets.
+
+### Labeling rule (decision 9)
+A packet is **attack** if source MAC = attacker and destination MAC = one of the
+attack's victims, within that attack's time window (first to last attacker → victim
+packet). Everything else is **benign**. Windows are computed in code, not copied
+from Wireshark.
 
 ## 5. Step C — port-scan attacker
 *To do.*

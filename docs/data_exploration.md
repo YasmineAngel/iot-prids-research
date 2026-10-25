@@ -182,7 +182,42 @@ packet). Everything else is **benign**. Windows are computed in code, not copied
 from Wireshark.
 
 ## 5. Step C — port-scan attacker
-*To do.*
+
+File: `ciciot2023/PCAP/Recon-PortScan/Recon-PortScan.pcap` (831 k packets, 24.75 h).
+Wireshark's sorting hid the scanner (French thousands separators break numeric sort),
+so counts were made with `tshark`.
+
+### Attacker
+**`dc:a6:32:dc:27:d5`, IP `192.168.137.178`**: the same Raspberry Pi as the
+brute-force attacks (third IP for the same MAC: `.225`, `.65`, `.178`).
+It sent **143,141 SYN packets**; the next sender sent 9,804.
+
+Other top SYN senders are normal devices. Example: `ac:17:02:05:34:27` sends almost all
+its SYNs to one internet server (`157.249.81.141`) on ports 80 and 443.
+
+### Scan pattern
+- ~150–164 SYNs per destination port, spread evenly over ~930 ports, consistent with
+  Nmap's default top-1,000 ports.
+- Bursts of ~2,000 SYNs about every 3 minutes, one device at a time
+  (~1,000 ports × 2 attempts). Each device received ~2,000–3,000 SYNs.
+- Port 8009 (attacker's normal casting traffic) is not significant.
+
+### Two scan sessions
+| Session | Date | Local time (+02:00) | UTC |
+|---|---|---|---|
+| 1 | 26 Sep 2022 | 18:31 → 21:07 | 16:31 → 19:07 |
+| 2 | 27 Sep 2022 | 15:44 → 19:14 | 13:44 → 17:14 |
+
+No busy minute (> 100 attacker SYNs) outside these sessions.
+
+### Difference from the paper
+The paper reports ~60 s of port-scan traffic (Table 8) because it tests at most
+10,000 packets per attack. The full scan is ~5.5 hours over two sessions.
+
+### Consequence for labeling
+"First to last attacker packet" is not a valid window: it spans ~25 h including the
+attacker's normal traffic. Sessions must be detected from busy minutes (see
+`baseline_spec.md`, decision 9).
 
 ---
 

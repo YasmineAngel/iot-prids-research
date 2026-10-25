@@ -103,11 +103,20 @@ Each item has three parts: **Paper says**, **I decided**, **Why**.
 ## 9. Labeling of attack traffic
 
 - **Paper says:** all packets from attacker to victim are labeled as attack, with manual
-  exceptions (e.g. the attacker Raspberry Pi's normal casting traffic to the Google Nest
-  Mini on port 8009). Tests use at most 10,000 attack packets.
-- **I decided:** to be decided after reading the CICIoT2023 documentation and topology,
-  and inspecting the attack pcaps in Wireshark.
-- **Why:** depends on the data; cannot be fixed from the paper alone.
+  exceptions (e.g. the attacker Raspberry Pi's casting traffic to the Google Nest Mini on
+  port 8009). Tests use at most 10,000 attack packets.
+- **We decided:**
+  1. *Find attack sessions:* count attacker → LAN-device packets per minute, ignoring port
+     8009. A minute with more than 100 such packets is busy. Busy minutes less than 30 minutes
+     apart form one session, from the first busy minute to the end of the last.
+  2. *Label:* a packet is attack if it is inside a session, its source MAC is the attacker,
+     and its destination MAC is a victim. Victims: the devices in the victims list; for
+     scans, every LAN device except the gateway and group addresses.
+  3. Labels use MAC addresses, never IPs.
+  4. Thresholds (100 packets, 30 minutes) are config settings, checked for sensitivity.
+- **Why:** the attacker (`dc:a6:32:dc:27:d5`) also sends normal traffic all day, and its IP
+  changed three times (DHCP). Attack files span hours to days while the attacks are bursts,
+  so neither "whole file" nor "first to last attacker packet" is a valid window.
 
 ---
 
